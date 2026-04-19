@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { getTokenData } from '../services/token'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -8,6 +9,15 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isLoggedIn: (state) => !!state.token,
+    user: (state) => {
+      if (!state.token) return null
+      const data = getTokenData()
+      return data ? {
+        email: data.email,
+        username: data.username,
+        role: state.role
+      } : null
+    },
   },
 
   actions: {

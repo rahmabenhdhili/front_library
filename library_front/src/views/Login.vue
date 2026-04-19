@@ -39,9 +39,9 @@ async function seConnecter() {
 
       // ✅ Redirect
       if (result.role === 'admin') {
-        router.push('/admin')
+        router.push('/admin/books')
       } else {
-        router.push('/boutique')
+        router.push('/books')
       }
     } else {
       erreur.value = result.message || 'Identifiant ou mot de passe incorrect'
