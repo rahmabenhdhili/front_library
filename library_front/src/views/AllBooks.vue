@@ -3,10 +3,10 @@
     <NavbarConnected />
 
     <div class="all-books">
-      <!-- Section Filtres -->
+
       <div class="filters-section">
         <div class="filters-container">
-          <!-- Filtre par nom -->
+
           <div class="filter-group filter-search">
             <label>
               <i class="bi bi-search"></i>
@@ -21,7 +21,7 @@
             />
           </div>
 
-          <!-- Année début -->
+
           <div class="filter-group filter-year">
             <label>
               <i class="bi bi-calendar"></i>
@@ -39,7 +39,7 @@
             </select>
           </div>
 
-          <!-- Année fin -->
+
           <div class="filter-group filter-year">
             <label>
               <i class="bi bi-calendar"></i>
@@ -57,7 +57,6 @@
             </select>
           </div>
 
-          <!-- Bouton effacer -->
           <div class="filter-actions">
             <button class="btn-clear" @click="clearFilters">
               <i class="bi bi-x-circle"></i> Effacer
@@ -65,7 +64,7 @@
           </div>
         </div>
 
-        <!-- Résultat des filtres -->
+
         <div class="filter-results-wrapper" v-if="filteredBooks.length !== books.length">
           <div class="filter-results">
             <i class="bi bi-info-circle"></i>
@@ -74,15 +73,15 @@
         </div>
       </div>
 
-      <!-- Grille de livres -->
+
       <div class="books-section">
-        <!-- État de chargement -->
+
         <div v-if="loading" class="loading-state">
           <div class="loading-spinner"></div>
           <p>Chargement des livres...</p>
         </div>
 
-        <!-- Grille de livres -->
+
         <div v-else-if="filteredBooks.length > 0" class="books-grid">
           <div
             class="book-card"
@@ -121,7 +120,7 @@
           </div>
         </div>
 
-        <!-- Message "Aucun livre trouvé" -->
+
         <div v-else class="no-results">
           <i class="bi bi-emoji-frown"></i>
           <h3>Aucun livre trouvé</h3>
@@ -137,34 +136,12 @@ import { ref, computed, onMounted, onActivated } from 'vue'
 import NavbarConnected from '@/components/NavbarConnected.vue'
 import api from '@/services/api'
 
-// État
+
 const books = ref([])
 const authors = ref([])
 const loading = ref(false)
 const favorites = ref(new Set())
 let isFirstLoad = true
-
-// Charger les favoris depuis localStorage
-function loadFavoritesFromStorage() {
-  try {
-    const stored = localStorage.getItem('favorites')
-    if (stored) {
-      const favArray = JSON.parse(stored)
-      favorites.value = new Set(favArray)
-    }
-  } catch (error) {
-    console.error('Erreur chargement favoris:', error)
-  }
-}
-
-// Sauvegarder les favoris dans localStorage
-function saveFavoritesToStorage() {
-  try {
-    localStorage.setItem('favorites', JSON.stringify([...favorites.value]))
-  } catch (error) {
-    console.error('Erreur sauvegarde favoris:', error)
-  }
-}
 
 // Charger les livres depuis l'API
 async function loadBooks() {
@@ -177,19 +154,13 @@ async function loadBooks() {
 
     authors.value = Array.isArray(authorsData) ? authorsData : []
 
-    // Traiter les livres et associer les auteurs
     let processedBooks = Array.isArray(booksData) ? booksData : []
 
     processedBooks = processedBooks.map(book => {
-      // Si l'auteur est déjà un objet, le garder
       if (book.author && typeof book.author === 'object') {
-        return {
-          ...book,
-          isFavorite: favorites.value.has(book.id)
-        }
+        return { ...book, isFavorite: favorites.value.has(book.id) }
       }
 
-      // Sinon, chercher l'auteur par ID
       const authorId = book.author?.id || book.author
       const foundAuthor = authors.value.find(a => a.id === authorId)
 
@@ -210,30 +181,20 @@ async function loadBooks() {
   }
 }
 
-// Générer la liste des années pour les filtres
 const allYears = computed(() => {
   const years = new Set()
   books.value.forEach(book => {
-    if (book.year) {
-      years.add(parseInt(book.year))
-    }
+    if (book.year) years.add(parseInt(book.year))
   })
   return Array.from(years).sort((a, b) => b - a)
 })
 
-// Filtres
-const filters = ref({
-  title: '',
-  startYear: '',
-  endYear: ''
-})
-
+const filters = ref({ title: '', startYear: '', endYear: '' })
 const filteredBooks = ref([])
 
 function applyFilters() {
   let result = [...books.value]
 
-  // Filtre par titre/auteur
   if (filters.value.title.trim()) {
     const searchTerm = filters.value.title.trim().toLowerCase()
     result = result.filter(book => {
@@ -245,27 +206,19 @@ function applyFilters() {
     })
   }
 
-  // Filtre par année de début
   if (filters.value.startYear) {
-    const startYear = parseInt(filters.value.startYear)
-    result = result.filter(book => parseInt(book.year) >= startYear)
+    result = result.filter(book => parseInt(book.year) >= parseInt(filters.value.startYear))
   }
 
-  // Filtre par année de fin
   if (filters.value.endYear) {
-    const endYear = parseInt(filters.value.endYear)
-    result = result.filter(book => parseInt(book.year) <= endYear)
+    result = result.filter(book => parseInt(book.year) <= parseInt(filters.value.endYear))
   }
 
   filteredBooks.value = result
 }
 
 function clearFilters() {
-  filters.value = {
-    title: '',
-    startYear: '',
-    endYear: ''
-  }
+  filters.value = { title: '', startYear: '', endYear: '' }
   applyFilters()
 }
 
@@ -276,13 +229,11 @@ function toggleFavorite(book) {
     favorites.value.add(book.id)
   }
 
-  // Mettre à jour le statut favori dans la liste des livres
   books.value = books.value.map(b => ({
     ...b,
     isFavorite: favorites.value.has(b.id)
   }))
 
-  saveFavoritesToStorage()
   applyFilters()
 }
 
@@ -290,18 +241,13 @@ function handleImageError(e) {
   e.target.src = 'https://placehold.co/140x200/EDE4D3/8A7F6E?text=No+Image'
 }
 
-// Initialisation
 onMounted(() => {
-  loadFavoritesFromStorage()
   loadBooks()
   isFirstLoad = false
 })
 
-// Recharger les livres quand la page est activée (si on revient d'une autre page)
 onActivated(() => {
-  if (!isFirstLoad) {
-    loadBooks()
-  }
+  if (!isFirstLoad) loadBooks()
 })
 </script>
 
@@ -309,7 +255,7 @@ onActivated(() => {
 @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
-/* ========== PALETTE MODERNE ========== */
+
 .all-books {
   --bs-bg-main: #FDFAF5;
   --bs-bg-card: #FFFFFF;
