@@ -7,6 +7,8 @@ import AllBooks from '../views/AllBooks.vue'
 import AdminBooks from '../views/AdminBooks.vue'
 
 import { useAuthStore } from '../stores/auth'
+import Favorites from '../views/Favorites.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,7 +17,10 @@ const router = createRouter({
     { path: '/login', component: Login },
     { path: '/inscription', component: Inscription },
     { path: '/books', component: AllBooks, meta: { requiresAuth: true } },
+    { path: '/favorites', component: Favorites, meta: { requiresAuth: true } },
     { path: '/admin/books', component: AdminBooks, meta: { requiresAuth: true, adminOnly: true } },
+    { path: '/:pathMatch(.*)*', redirect: '/' },
+
   ],
 })
 

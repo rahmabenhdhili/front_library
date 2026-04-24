@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'http://localhost:3001';
 
 class ApiService {
   async request(endpoint, options = {}) {
@@ -100,6 +100,19 @@ class ApiService {
   async getBooksStatsBetweenYears(year1, year2) {
     return this.request(`/books/stats/v2?year1=${year1}&year2=${year2}`);
   }
+
+ async getMyFavorites() {
+  return this.request('/favorites');
+}
+
+async addFavorite(bookId) {
+  return this.request(`/favorites/${bookId}`, { method: 'POST' });
+}
+
+async removeFavorite(bookId) {
+  return this.request(`/favorites/${bookId}`, { method: 'DELETE' });
+}
+ 
 }
 
 export default new ApiService();

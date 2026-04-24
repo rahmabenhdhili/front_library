@@ -12,7 +12,8 @@
 
       <button @click="sInscrire">S'inscrire</button>
 
-      <p>Déjà un compte ? <RouterLink to="/login">Se connecter</RouterLink></p>
+      <p v-if="!succes">Déjà un compte ? <RouterLink to="/login">Se connecter</RouterLink></p>
+
     </div>
   </div>
 </template>

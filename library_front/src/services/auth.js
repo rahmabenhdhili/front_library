@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:3000/auth'
+const BASE = 'http://localhost:3001/auth'
 
 // Inscription
 export async function signup(data) {

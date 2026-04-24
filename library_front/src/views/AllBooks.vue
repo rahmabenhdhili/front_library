@@ -147,10 +147,14 @@ let isFirstLoad = true
 async function loadBooks() {
   loading.value = true
   try {
-    const [booksData, authorsData] = await Promise.all([
+    const [booksData, authorsData, favsData] = await Promise.all([
       api.getAllBooks(),
-      api.getAllAuthors()
+      api.getAllAuthors(),
+      api.getMyFavorites()
     ])
+
+    const favIds = new Set((Array.isArray(favsData) ? favsData : []).map(b => b.id))
+    favorites.value = favIds
 
     authors.value = Array.isArray(authorsData) ? authorsData : []
 
@@ -167,7 +171,7 @@ async function loadBooks() {
       return {
         ...book,
         author: foundAuthor || null,
-        isFavorite: favorites.value.has(book.id)
+        isFavorite: favIds.has(book.id)
       }
     })
 
@@ -222,20 +226,25 @@ function clearFilters() {
   applyFilters()
 }
 
-function toggleFavorite(book) {
-  if (favorites.value.has(book.id)) {
-    favorites.value.delete(book.id)
-  } else {
-    favorites.value.add(book.id)
+async function toggleFavorite(book) {
+  try {
+    if (favorites.value.has(book.id)) {
+      await api.removeFavorite(book.id)
+      favorites.value.delete(book.id)
+    } else {
+      await api.addFavorite(book.id)
+      favorites.value.add(book.id)
+    }
+    books.value = books.value.map(b => ({
+      ...b,
+      isFavorite: favorites.value.has(b.id)
+    }))
+    applyFilters()
+  } catch (error) {
+    console.error('Erreur favori:', error)
   }
-
-  books.value = books.value.map(b => ({
-    ...b,
-    isFavorite: favorites.value.has(b.id)
-  }))
-
-  applyFilters()
 }
+
 
 function handleImageError(e) {
   e.target.src = 'https://placehold.co/140x200/EDE4D3/8A7F6E?text=No+Image'
