@@ -8,29 +8,28 @@
         <h1>Votre Prochaine Grande <span class="accent">Histoire</span> Vous Attend</h1>
         <p>Explorez. Lisez. Grandissez. Tout en un seul endroit.</p>
 
-        <!-- Barre de recherche -->
-        <div class="recherche">
-          <input type="text" placeholder="Rechercher des livres, auteurs, genres..." />
-          <button>🔍 Rechercher</button>
-        </div>
+
 
         <!-- Fonctionnalités -->
         <div class="fonctionnalites">
-          <div class="carte">
-            <span>📖</span>
-            <strong>Découvrir des Livres</strong>
-            <small>Explorez des histoires sans fin</small>
-          </div>
-          <div class="carte">
-            <span>⭐</span>
-            <strong>Vos Favoris</strong>
-            <small>Sauvegardez et revisitez</small>
-          </div>
-          <div class="carte">
-            <span>👥</span>
-            <strong>Rejoindre la Communauté</strong>
-            <small>Partagez votre amour de la lecture</small>
-          </div>
+<div class="carte" @click="router.push('/books')">
+  <span>📖</span>
+  <strong>Découvrir des Livres</strong>
+  <small>Explorez des histoires sans fin</small>
+</div>
+
+<div class="carte" @click="router.push('/favorites')">
+  <span>⭐</span>
+  <strong>Vos Favoris</strong>
+  <small>Sauvegardez et revisitez</small>
+</div>
+
+<div class="carte" @click="router.push('/inscription')">
+  <span>👥</span>
+  <strong>Rejoindre la Communauté</strong>
+  <small>Partagez votre amour de la lecture</small>
+</div>
+
         </div>
       </div>
     </section>
@@ -38,7 +37,15 @@
 </template>
 
 <script setup>
+
+import { useRouter } from 'vue-router'
 import Navbar from '../components/Navbar.vue'
+const router = useRouter()
+
+
+function goToBooks() {
+  router.push('/books')
+}
 </script>
 
 <style scoped>
@@ -58,7 +65,7 @@ import Navbar from '../components/Navbar.vue'
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 60px 20px;
+  
 }
 
 .contenu {
@@ -83,32 +90,7 @@ p {
   margin-bottom: 28px;
 }
 
-/* Barre de recherche */
-.recherche {
-  display: flex;
-  gap: 0;
-  margin-bottom: 36px;
-  border-radius: 30px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-}
 
-.recherche input {
-  flex: 1;
-  padding: 14px 20px;
-  border: none;
-  font-size: 15px;
-  outline: none;
-}
-
-.recherche button {
-  padding: 14px 24px;
-  background: #c0392b;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-}
 
 /* Cartes fonctionnalités */
 .fonctionnalites {
@@ -125,7 +107,9 @@ p {
   padding: 14px 18px;
   border-radius: 12px;
   backdrop-filter: blur(4px);
+  cursor: pointer;
 }
+
 
 .carte span {
   font-size: 22px;
