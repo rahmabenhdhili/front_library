@@ -290,6 +290,19 @@
                         <span class="preview-label">Aperçu</span>
                       </div>
                     </div>
+
+                    <div class="form-group full-width">
+                      <label>
+                          <i class="bi bi-file-pdf"></i>
+                          PDF (URL) — optionnel
+                       </label>
+                        <input
+                           type="url"
+                           v-model="form.pdfUrl"
+                           placeholder="https://drive.google.com/..."
+                         />
+                     </div>
+
                   </div>
 
                   <div v-if="errorMessage" class="error-message">
@@ -361,7 +374,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import NavbarConnected from '@/components/NavbarConnected.vue'
 import api from '@/services/api'
 
@@ -393,7 +406,8 @@ const form = ref({
   newAuthorNom: '',
   year: '',
   editor: '',
-  image: ''
+  image: '',
+  pdfUrl: '' 
 })
 
 // Watch pour le formulaire d'auteur
@@ -405,20 +419,31 @@ watch(() => form.value.authorId, (newVal) => {
 })
 
 // Filtrage des livres
-const filteredBooks = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return books.value
+const filteredBooks = ref([])
+
+async function searchBooks() {
+  loadingBooks.value = true
+  try {
+    const data = await api.searchBooks(searchQuery.value)
+
+    let result = Array.isArray(data) ? data : []
+
+    result = result.map(book => {
+      if (book.author && typeof book.author === 'object') return book
+      const authorId = book.author?.id || book.author
+      const foundAuthor = authors.value.find(a => a.id === authorId)
+      return { ...book, author: foundAuthor || null }
+    })
+
+    filteredBooks.value = result
+    resetPagination()
+  } catch (error) {
+    console.error('Erreur recherche:', error)
+  } finally {
+    loadingBooks.value = false
   }
-  const query = searchQuery.value.toLowerCase().trim()
-  return books.value.filter(book => {
-    return (
-      book.title?.toLowerCase().includes(query) ||
-      `${book.author?.prenom || ''} ${book.author?.nom || ''}`.toLowerCase().includes(query) ||
-      book.editor?.toLowerCase().includes(query) ||
-      book.year?.toString().includes(query)
-    )
-  })
-})
+}
+
 
 // Pagination
 const totalPages = computed(() => {
@@ -479,8 +504,9 @@ function resetPagination() {
 }
 
 function handleSearch() {
-  resetPagination()
+  searchBooks()
 }
+
 
 function clearSearch() {
   searchQuery.value = ''
@@ -509,7 +535,7 @@ async function loadBooks() {
       return { ...book, author: foundAuthor || null }
     })
 
-    resetPagination()
+     await searchBooks()
   } catch (error) {
     console.error('Erreur chargement livres:', error)
     errorMessage.value = 'Impossible de charger les livres'
@@ -551,7 +577,8 @@ function openEditModal(book) {
     newAuthorNom: '',
     year: book.year || '',
     editor: book.editor || '',
-    image: book.image || ''
+    image: book.image || '',
+    pdfUrl: book.pdfUrl || ''
   }
 
   showModal.value = true
@@ -579,7 +606,8 @@ function resetForm() {
     newAuthorNom: '',
     year: '',
     editor: '',
-    image: ''
+    image: '',
+    pdfUrl: ''
   }
 }
 
@@ -609,7 +637,8 @@ async function saveBook() {
       year: parseInt(form.value.year),
       editor: form.value.editor.trim(),
       image: form.value.image.trim(),
-      author: finalAuthorId ? parseInt(finalAuthorId) : null
+      author: finalAuthorId ? parseInt(finalAuthorId) : null,
+      pdfUrl: form.value.pdfUrl.trim() || null 
     }
 
     // Validation

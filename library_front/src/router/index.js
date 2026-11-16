@@ -8,6 +8,7 @@ import AdminBooks from '../views/AdminBooks.vue'
 
 import { useAuthStore } from '../stores/auth'
 import Favorites from '../views/Favorites.vue'
+import BookDetail from '../views/BookDetail.vue'
 
 
 const router = createRouter({
@@ -20,6 +21,8 @@ const router = createRouter({
     { path: '/favorites', component: Favorites, meta: { requiresAuth: true } },
     { path: '/admin/books', component: AdminBooks, meta: { requiresAuth: true, adminOnly: true } },
     { path: '/:pathMatch(.*)*', redirect: '/' },
+    { path: '/books/:id', component: BookDetail, meta: { requiresAuth: true } },
+
 
   ],
 })

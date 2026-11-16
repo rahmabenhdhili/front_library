@@ -62,6 +62,17 @@ class ApiService {
     return this.request(`/books/search/${id}`);
   }
 
+async searchBooks(title = '', yearMin = '', yearMax = '') {
+  const params = new URLSearchParams()
+  if (title) params.append('title', title)
+  if (yearMin) params.append('yearMin', yearMin)
+  if (yearMax) params.append('yearMax', yearMax)
+  
+  const query = params.toString()
+  return this.request(`/books/search${query ? '?' + query : ''}`)
+}
+
+
   async addBook(bookData) {
     return this.request('/books/new', {
       method: 'POST',
