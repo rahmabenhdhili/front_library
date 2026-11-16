@@ -88,6 +88,7 @@
             :class="{ featured: book.isFavorite }"
             v-for="book in filteredBooks"
             :key="book.id"
+            @click="router.push(`/books/${book.id}`)"
           >
             <div class="book-image">
               <img
@@ -133,10 +134,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onActivated } from 'vue'
+import { useRouter } from 'vue-router'
 import NavbarConnected from '@/components/NavbarConnected.vue'
 import api from '@/services/api'
 
-
+const router = useRouter()
 const books = ref([])
 const authors = ref([])
 const loading = ref(false)
@@ -147,43 +149,23 @@ let isFirstLoad = true
 async function loadBooks() {
   loading.value = true
   try {
-    const [booksData, authorsData, favsData] = await Promise.all([
-      api.getAllBooks(),
-      api.getAllAuthors(),
-      api.getMyFavorites()
+    const [favsData, authorsData] = await Promise.all([
+      api.getMyFavorites(),
+      api.getAllAuthors()
     ])
 
+    authors.value = Array.isArray(authorsData) ? authorsData : []
     const favIds = new Set((Array.isArray(favsData) ? favsData : []).map(b => b.id))
     favorites.value = favIds
 
-    authors.value = Array.isArray(authorsData) ? authorsData : []
-
-    let processedBooks = Array.isArray(booksData) ? booksData : []
-
-    processedBooks = processedBooks.map(book => {
-      if (book.author && typeof book.author === 'object') {
-        return { ...book, isFavorite: favorites.value.has(book.id) }
-      }
-
-      const authorId = book.author?.id || book.author
-      const foundAuthor = authors.value.find(a => a.id === authorId)
-
-      return {
-        ...book,
-        author: foundAuthor || null,
-        isFavorite: favIds.has(book.id)
-      }
-    })
-
-    books.value = processedBooks
-    applyFilters()
+    await applyFilters()
   } catch (error) {
-    console.error('Erreur chargement livres:', error)
-    books.value = []
+    console.error('Erreur chargement:', error)
   } finally {
     loading.value = false
   }
 }
+
 
 const allYears = computed(() => {
   const years = new Set()
@@ -196,30 +178,30 @@ const allYears = computed(() => {
 const filters = ref({ title: '', startYear: '', endYear: '' })
 const filteredBooks = ref([])
 
-function applyFilters() {
-  let result = [...books.value]
+async function applyFilters() {
+  loading.value = true
+  try {
+    const data = await api.searchBooks(
+      filters.value.title,
+      filters.value.startYear,
+      filters.value.endYear
+    )
 
-  if (filters.value.title.trim()) {
-    const searchTerm = filters.value.title.trim().toLowerCase()
-    result = result.filter(book => {
-      const titleMatch = book.title?.toLowerCase().includes(searchTerm)
-      const authorName = `${book.author?.prenom || ''} ${book.author?.nom || ''}`.toLowerCase()
-      const authorMatch = authorName.includes(searchTerm)
-      const editorMatch = book.editor?.toLowerCase().includes(searchTerm)
-      return titleMatch || authorMatch || editorMatch
-    })
+    let processedBooks = Array.isArray(data) ? data : []
+
+    processedBooks = processedBooks.map(book => ({
+      ...book,
+      isFavorite: favorites.value.has(book.id)
+    }))
+
+    filteredBooks.value = processedBooks
+  } catch (error) {
+    console.error('Erreur recherche:', error)
+  } finally {
+    loading.value = false
   }
-
-  if (filters.value.startYear) {
-    result = result.filter(book => parseInt(book.year) >= parseInt(filters.value.startYear))
-  }
-
-  if (filters.value.endYear) {
-    result = result.filter(book => parseInt(book.year) <= parseInt(filters.value.endYear))
-  }
-
-  filteredBooks.value = result
 }
+
 
 function clearFilters() {
   filters.value = { title: '', startYear: '', endYear: '' }
